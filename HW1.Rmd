@@ -1,0 +1,129 @@
+#Matthew Gallagher
+#MSiA 400
+#Homework 1
+---
+title: "R Notebook"
+output: html_notebook
+---
+Problem 1
+```{r}
+my_aov <- function(labels,dataframe){
+  
+  resp <-c(t(as.matrix(dataframe)))
+  k=ncol(dataframe)
+  n = nrow(dataframe)
+  
+  tm <- gl(k,1,n*k,factor(labels))
+  
+  f_vals <- summary(lm(resp~tm))$fstatistic
+  fstat <- qf(.95, f_vals[2], f_vals[3])
+  
+  if (f_vals[1]>fstat ){
+    out = "Reject H0"
+  }
+  
+  else{
+    out= "Fail to reject H0"
+  }
+  
+  
+return(out)  
+}
+tensile <- read.table("~/Downloads/Tensile.txt", header=T)
+treats <-c("HC5","HC10","HC15","HC20")
+my_aov(treats,tensile)
+
+```
+
+
+Problem 2
+a)
+```{r}
+library(readr)
+bostonhousing <- read_delim("~/Downloads/bostonhousing.txt", 
+    "\t", escape_double = FALSE, trim_ws = TRUE)
+
+
+reg <- lm(MEDV~., data=bostonhousing)
+summary(reg)
+
+```
+
+INDUS and AGE, you are the weakest link! With the two highest p-values, I am confident these will be the least likely to be in the best model.
+
+b)
+```{r}
+reg_picked <- lm(MEDV ~ . -AGE -INDUS, data=bostonhousing)
+summary(reg_picked)
+```
+
+
+c)
+```{r}
+sae_f <- sum(abs(summary(reg)$residuals))
+sse_f <- sum(I(summary(reg)$residuals^2))
+sae_p <- sum(abs(summary(reg_picked)$residuals))
+sse_p <- sum(I(summary(reg_picked)$residuals^2))
+
+MAE_f <- sae_f/(506-14)
+MSE_f <- sse_f/(506-14)
+MAE_p <- sae_p/(506-12)
+MSE_p <- sse_p/(506-12)
+
+MAE_f
+MSE_f
+MAE_p
+MSE_p
+
+```
+
+We would choose the model with the smallers MSE and MAE values, which in our case is the reg_picked.
+
+d)
+```{r}
+reg_step <- stepAIC(reg,direction="both")
+summary(reg_step)
+```
+The model that stepAIC outputs is the same as our reg_picked model!
+
+
+3)
+```{r}
+library(readr)
+labdata <- read_delim("~/Downloads/labdata.txt", 
+    "\t", escape_double = FALSE, trim_ws = TRUE)
+```
+
+a)
+```{r}
+reg3 <- lm(y~., data=labdata)
+summary(reg3)
+```
+
+```{r}
+
+plot(labdata$x1,labdata$y)
+#plot(labdata$x2,labdata$y)
+#plot(labdata$x3,labdata$y)
+#plot(labdata$x4,labdata$y)
+#plot(labdata$x5,labdata$y)
+#plot(labdata$x6,labdata$y)
+#plot(labdata$x7,labdata$y)
+#plot(labdata$x8,labdata$y)
+
+```
+
+From the plots, I believe x1 is most likely to be used in a piecewise regression.
+
+```{r}
+m <- mean(labdata$x1)
+m
+seg.reg3 <- lm(y ~ (x1<m)*x1, data=labdata)
+summary(seg.reg3)$adj.r.squared
+summary(reg3)$adj.r.squared
+```
+
+
+
+
+
